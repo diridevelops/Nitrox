@@ -184,11 +184,6 @@ namespace NitroxLauncher
                 throw new Exception("Location of Subnautica is unknown. Set the path to it in settings.");
             }
 
-            if (Config.IsPirated)
-            {
-                throw new Exception("Aarrr ! Nitrox walked the plank :(");
-            }
-
 #if RELEASE
             if (Process.GetProcessesByName("Subnautica").Length > 0)
             {
@@ -238,11 +233,14 @@ namespace NitroxLauncher
             string subnauticaLaunchArguments = Config.SubnauticaLaunchArguments;
             string subnauticaExe = Path.Combine(subnauticaPath, GameInfo.Subnautica.ExeName);
             IGamePlatform platform = GamePlatforms.GetPlatformByGameDir(subnauticaPath);
+            if (platform == Steam.Instance && Config.IsPirated)
+            { platform = NoSteam.Instance; }
             
             // Start game & gaming platform if needed.
             using ProcessEx game = platform switch
             {
                 Steam s => await s.StartGameAsync(subnauticaExe, GameInfo.Subnautica.SteamAppId, subnauticaLaunchArguments),
+                NoSteam n => await n.StartGameAsync(subnauticaExe, subnauticaLaunchArguments),
                 Egs e => await e.StartGameAsync(subnauticaExe, subnauticaLaunchArguments),
                 MSStore m => await m.StartGameAsync(subnauticaExe),
                 DiscordStore d => await d.StartGameAsync(subnauticaExe, subnauticaLaunchArguments),
